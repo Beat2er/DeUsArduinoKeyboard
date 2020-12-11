@@ -274,7 +274,7 @@ const uint8_t de_asciimap[128] PROGMEM =
 	0x26,          // 9
 	0x37 | SHIFT,      // :
 	0x36 | SHIFT,          // ;
-	0x03,			      // <
+	0x64,			      // <
 	0x27|SHIFT,          // =
 	0x64|SHIFT,      // >
 	0x2d|SHIFT,      // ?
@@ -384,20 +384,20 @@ size_t Keyboard_::press(uint8_t k)
 	if (strcmp(layout, "de") == 0) {
 		if (k == 0x84 || k == 0xA4 || k == 0x96 || k == 0xb6 || k == 0x9c || k == 0xbc || k == 0x9f) { //ÄäÖöÜüß
 		  if (k == 0x84 || k == 0xA4) {
-			k = KEY_A_UMLAUT;
 			if (k == 0x84) {
 			  _keyReport.modifiers |= 0x02;	// the left shift modifier
 			}
+			k = KEY_A_UMLAUT;
 		  } else if (k == 0x96 || k == 0xb6) {
-			k = KEY_O_UMLAUT;
 			if (k == 0x96) {
 			  _keyReport.modifiers |= 0x02;	// the left shift modifier
 			}
+			k = KEY_O_UMLAUT;
 		  } else if (k == 0x9c || k == 0xbc) {
-			k = KEY_U_UMLAUT;
 			if (k == 0x9c) {
 			  _keyReport.modifiers |= 0x02;	// the left shift modifier
 			}
+			k = KEY_U_UMLAUT;
 		  } else if (k == 0x9f) {
 			k = KEY_ESZETT;
 		  }
@@ -408,7 +408,7 @@ size_t Keyboard_::press(uint8_t k)
 	uint8_t i;
 	if (k >= 136) {			// it's a non-printing key (not a modifier)
 		k = k - 136;
-	} else if (k >= 128) {	// it's a modifier key
+	} else if (k >= 128 && k != 0x64) {	// it's a modifier key
 		_keyReport.modifiers |= (1<<(k-128));
 		k = 0;
 	} else {				// it's a printing key
@@ -421,7 +421,7 @@ size_t Keyboard_::press(uint8_t k)
 			_keyReport.modifiers |= 0x02;	// the left shift modifier
 			k &= 0x7F;
 		}
-		if (k & 0x40) {							// it's a letter or other character reached with Alt Gr
+		if (k & 0x40 && k != 0x64) {//TODO bessere Ausnahme von <>							// it's a letter or other character reached with Alt Gr
 		  _keyReport.modifiers |= 0x40;	// the right alt modifier
 		  k &= 0x3F;
 		}
@@ -456,20 +456,20 @@ size_t Keyboard_::release(uint8_t k)
 	if (strcmp(layout, "de") == 0) {
 		if (k == 0x84 || k == 0xA4 || k == 0x96 || k == 0xb6 || k == 0x9c || k == 0xbc || k == 0x9f) { //ÄäÖöÜüß
 		  if (k == 0x84 || k == 0xA4) {
-			k = KEY_A_UMLAUT;
 			if (k == 0x84) {
 			  _keyReport.modifiers &= ~(0x02);
 			}
+			k = KEY_A_UMLAUT;
 		  } else if (k == 0x96 || k == 0xb6) {
-			k = KEY_O_UMLAUT;
 			if (k == 0x96) {
 			  _keyReport.modifiers &= ~(0x02);
 			}
+			k = KEY_O_UMLAUT;
 		  } else if (k == 0x9c || k == 0xbc) {
-			k = KEY_U_UMLAUT;
 			if (k == 0x9c) {
 			  _keyReport.modifiers &= ~(0x02);
 			}
+			k = KEY_U_UMLAUT;
 		  } else if (k == 0x9f) {
 			k = KEY_ESZETT;
 		  }
@@ -491,7 +491,7 @@ size_t Keyboard_::release(uint8_t k)
 			_keyReport.modifiers &= ~(0x02);	// the left shift modifier
 			k &= 0x7F;
 		}
-		if (k & 0x40) {							// it's a letter or other character reached with Alt Gr
+		if (k & 0x40 && k != 0x64) {//TODO bessere Ausnahme von <>							// it's a letter or other character reached with Alt Gr
 		  _keyReport.modifiers &= ~(0x40);	// the right alt modifier
 		  k &= 0x3F;
 		}
