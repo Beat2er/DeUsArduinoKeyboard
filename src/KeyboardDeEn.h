@@ -24,7 +24,8 @@
 #ifndef KEYBOARDDEEN_h
 #ifndef KEYBOARD_h
 #define KEYBOARD_h
-void Keyboard_layout(char * l);#include "HID.h"
+#include "HID.h"
+void Keyboard_layout(char * l);
 
 #if!defined(_USING_HID)
 
