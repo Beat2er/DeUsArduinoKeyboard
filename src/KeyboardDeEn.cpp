@@ -73,9 +73,9 @@ Keyboard_::Keyboard_(void)
 
 
 #define SHIFT 0x80
-#define ALTGR 0x40
+#define ALTGR 0x200
  //US
-const uint8_t us_asciimap[128] PROGMEM =
+const uint16_t us_asciimap[128] PROGMEM =
 {
 	0x00,             // 0 NUL
 	0x00,             // 1 SOH
@@ -211,7 +211,7 @@ const uint8_t us_asciimap[128] PROGMEM =
 
 
 // DE
-const uint8_t de_asciimap[128] PROGMEM =
+const uint16_t de_asciimap[128] PROGMEM =
 {
 	0x00,             // NUL
 	0x00,             // SOH
@@ -408,23 +408,24 @@ size_t Keyboard_::press(uint8_t k)
 	uint8_t i;
 	if (k >= 136) {			// it's a non-printing key (not a modifier)
 		k = k - 136;
-	} else if (k >= 128 && k != 0x64) {	// it's a modifier key
+	} else if (k >= 128) {	// it's a modifier key
 		_keyReport.modifiers |= (1<<(k-128));
 		k = 0;
 	} else {				// it's a printing key
-		k = pgm_read_byte(_asciimap + k);
-		if (!k) {
+		uint16_t k16 = pgm_read_word(_asciimap + sizeof(uint16_t) * k);
+		if (!k16) {
 			setWriteError();
 			return 0;
 		}
-		if (k & 0x80) {						// it's a capital letter or other character reached with shift
+		if (k16 & SHIFT) {						// it's a capital letter or other character reached with shift
 			_keyReport.modifiers |= 0x02;	// the left shift modifier
-			k &= 0x7F;
+			k16 = k16 & (SHIFT - 1);
 		}
-		if (k & 0x40 && k != 0x64) {//TODO bessere Ausnahme von <>							// it's a letter or other character reached with Alt Gr
-		  _keyReport.modifiers |= 0x40;	// the right alt modifier
-		  k &= 0x3F;
+		if (k16 & ALTGR) { 						// it's a letter or other character reached with Alt Gr
+			_keyReport.modifiers |= 0x40;	// the right alt modifier
+			k16 = k16 & (ALTGR - 1);
 		}
+    k = k16;
 	}
 	
 	// Add k to the key report only if it's not already present
@@ -483,18 +484,19 @@ size_t Keyboard_::release(uint8_t k)
 		_keyReport.modifiers &= ~(1<<(k-128));
 		k = 0;
 	} else {				// it's a printing key
-		k = pgm_read_byte(_asciimap + k);
-		if (!k) {
+		uint16_t k16 = pgm_read_word(_asciimap + sizeof(uint16_t) * k);
+		if (!k16) {
 			return 0;
 		}
-		if (k & 0x80) {							// it's a capital letter or other character reached with shift
+		if (k16 & SHIFT) {							// it's a capital letter or other character reached with shift
 			_keyReport.modifiers &= ~(0x02);	// the left shift modifier
-			k &= 0x7F;
+			k16 = k16 & (SHIFT - 1);
 		}
-		if (k & 0x40 && k != 0x64) {//TODO bessere Ausnahme von <>							// it's a letter or other character reached with Alt Gr
-		  _keyReport.modifiers &= ~(0x40);	// the right alt modifier
-		  k &= 0x3F;
+		if (k16 & ALTGR) {						// it's a letter or other character reached with Alt Gr
+			_keyReport.modifiers &= ~(0x40);	// the right alt modifier
+			k16 = k16 & (ALTGR - 1);
 		}
+   k = k16;
 	}
 	
 	// Test the key report to see if k is present.  Clear it if it exists.
@@ -543,6 +545,7 @@ size_t Keyboard_::write(const uint8_t *buffer, size_t size) {
 	}
 	return n;
 }
+
 
 Keyboard_ Keyboard;
 
